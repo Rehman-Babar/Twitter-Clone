@@ -70,7 +70,7 @@ export const Login = async(req, res) => {
         }
         const isPasswordCorrect = await bcrypt.compare(password, user?.password || "")
         if(!isPasswordCorrect) {
-            res.status(404).json({error:"Invallid password"})
+            return res.status(404).json({error:"Invallid password"})
         }
         jwttokenAndSetCookie(user._id, res);
         res.status(201).json({

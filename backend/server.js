@@ -6,6 +6,7 @@ import {v2 as cloudinary} from 'cloudinary'
 
 import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/userroute.js';
+import postRoutes from './routes/post.routes.js';
 
 import MongoDbConnection from './db/DB-Connection.js';
 
@@ -27,6 +28,7 @@ app.use(express.urlencoded({extended:true}))
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);

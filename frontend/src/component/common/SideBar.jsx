@@ -3,16 +3,51 @@ import XSvg from "../svgs/X";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import LoadingSpinner from "./LoadingSpinner";
 
 const Sidebar = () => {
-	const data = {
-		fullName: "John Doe",
-		userName: "johndoe",
-		profileImg: "/avatars/boy1.png",
-	};
+	// const data = {
+	// 	fullName: "John Doe",
+	// 	userName: "johndoe",
+	// 	profileImg: "/avatars/boy1.png",
+	// };
 
+	const queryClient = useQueryClient()
+
+	const {  mutate, isPending} = useMutation({
+		mutationFn: async() => {
+			try {
+				const res = await fetch('/api/auth/logout',{
+					method:"Post"
+				})
+				const data = await res.json();
+				if (data.error) {
+					throw new Error(data.error)
+					
+				}
+				
+				toast.success(data.message)
+			} catch (error) {
+				toast.error(error.message)
+			}
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({queryKey:["authUser"]})
+			
+		}
+	})
+	
+	const handleLogOut = (e) => {
+		e.preventDefault();
+		mutate()
+	}
+
+	const {data} = useQuery({queryKey:["authUser"]})
+	
 	return (
 		<div className='md:flex-[2_2_0] w-18 max-w-52'>
 			<div className='sticky top-0 left-0 h-screen flex flex-col border-r border-gray-700 w-20 md:w-full'>
@@ -63,7 +98,8 @@ const Sidebar = () => {
 								<p className='text-white font-bold text-sm w-20 truncate'>{data?.fullName}</p>
 								<p className='text-slate-500 text-sm'>@{data?.userName}</p>
 							</div>
-							<BiLogOut className='w-5 h-5 cursor-pointer' />
+							{isPending ? <LoadingSpinner size={"sm"}/> : <BiLogOut className='w-5 h-5 cursor-pointer' onClick={handleLogOut} />}
+							
 						</div>
 					</Link>
 				)}

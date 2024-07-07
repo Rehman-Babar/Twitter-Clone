@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
+import {useMutation, useQueryClient} from '@tanstack/react-query'
+
+import {toast} from 'react-hot-toast'
+
 import XSvg from '../../../component/svgs/X';
 
 import { MdOutlineMail } from "react-icons/md";
@@ -11,21 +15,48 @@ import { MdDriveFileRenameOutline } from "react-icons/md";
 const SignupPage = () => {
 	const [formData, setFormData] = useState({
 		email: "",
-		username: "",
+		userName: "",
 		fullName: "",
 		password: "",
 	});
+	const queryClient = useQueryClient();
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		console.log(formData);
-	};
-
+	const {mutate, isError, isPending, error} = useMutation({
+		mutationFn:async ( {email, userName, fullName, password} ) => {
+			try {
+				const res = await fetch("/api/auth/signup", {
+					method:"Post",
+					headers:{
+						"Content-Type":"application/json"
+					},
+					body:JSON.stringify({email, fullName, userName, password})
+				})
+				
+				const data = await res.json();
+				if (data.error) {
+					throw new Error(data.error || "Faield to create account")
+				}
+				toast.success("Account created successfully")
+				
+				return
+			} catch (error) {
+				console.log(error);
+				throw error
+			}
+		},
+		onSuccess : () => {
+			queryClient.invalidateQueries({queryKey:["authUser"]})
+		}
+	})
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const isError = true;
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		mutate(formData)
+	};
+
 
 	return (
 		<div className='max-w-screen-xl mx-auto flex h-screen px-10'>
@@ -53,10 +84,10 @@ const SignupPage = () => {
 							<input
 								type='text'
 								className='grow '
-								placeholder='Username'
-								name='username'
+								placeholder='UserName'
+								name='userName'
 								onChange={handleInputChange}
-								value={formData.username}
+								value={formData.userName}
 							/>
 						</label>
 						<label className='input input-bordered rounded flex items-center gap-2 flex-1'>
@@ -82,8 +113,10 @@ const SignupPage = () => {
 							value={formData.password}
 						/>
 					</label>
-					<button className='btn rounded-full btn-primary text-white'>Sign up</button>
-					{isError && <p className='text-red-500'>Something went wrong</p>}
+					<button className='btn rounded-full btn-primary text-white'>
+						{isPending ? "Loading..." : "Sign up"}
+					</button>
+					{isError && <p className='text-red-500'>{error.message}</p>}
 				</form>
 				<div className='flex flex-col lg:w-2/3 gap-2 mt-4'>
 					<p className='text-white text-lg'>Already have an account?</p>

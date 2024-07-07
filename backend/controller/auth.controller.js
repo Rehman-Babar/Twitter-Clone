@@ -6,12 +6,12 @@ export const Signup = async(req, res) => {
 
     try {
         const {fullName, userName, email, password} = req.body;
-
+       
     if (!fullName || !userName|| !email || !password) {
-        return res.status(500).json({error:"please fill all the fields"})
+        return res.status(500).json({error:"please fill all the fields!"})
     };
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email)) {  
         return res.status(400).json({ error: "Invalid email format" });
     };
     if (password.length < 6) {
@@ -19,11 +19,11 @@ export const Signup = async(req, res) => {
     };
     const existedUser = await User.findOne({userName:userName})
     if (existedUser) {
-        return res.status(400).json({error:"userName already Taken"})
+        return res.status(400).json({error:"Username already Taken"})
     }
     const existedEmail = await User.findOne({email:email})
     if (existedEmail) {
-        return res.status(400).json({error:"email already Taken"})
+        return res.status(400).json({error:"Email already Taken"})
     }
     const salt = await bcrypt.genSalt(8);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -66,7 +66,7 @@ export const Login = async(req, res) => {
         };
         const user = await User.findOne({userName})
         if(!user) {
-            res.status(404).json({error:"User not found"})
+            return res.status(404).json({error:"User not found"})
         }
         const isPasswordCorrect = await bcrypt.compare(password, user?.password || "")
         if(!isPasswordCorrect) {
@@ -92,7 +92,8 @@ export const Login = async(req, res) => {
 export const Logout = async(req, res) => {
     try {
         res.cookie("jwt", "", {maxAge:0})
-        res.status(200).json({message:"Logged out seccessfully"})
+        res.status(200).json({message:"Logged out seccessfully😥😥😥"})
+        
     } catch (error) {
         console.log("error in logout controller:", error.message);
         res.status(500).json({error:"Internal Server Error"})

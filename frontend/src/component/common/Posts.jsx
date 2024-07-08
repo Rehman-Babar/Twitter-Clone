@@ -20,7 +20,6 @@ const Posts = ({feedType}) => {
 	}
 
 	const PostsEndPoints = getPostsEndPoints()
-	console.log(PostsEndPoints)
 	const {data:posts, isLoading, refetch, isFetching} = useQuery({
 		queryKey:["posts"],
 		queryFn:async () => {
@@ -30,7 +29,6 @@ const Posts = ({feedType}) => {
 				if (data.error) {
 					toast.error(data.error.message)
 				}
-				console.log("posts",data)
 				return data
 			} catch (error) {
 				throw new Error(error)
@@ -49,7 +47,7 @@ const Posts = ({feedType}) => {
 					<PostSkeleton />
 				</div>
 			)}
-			{!isLoading && isFetching && posts?.length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
+			{!isLoading && !isFetching && posts?.length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
 			{!isLoading && posts && (
 				<div>
 					{posts.map((post) => (

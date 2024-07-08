@@ -25,7 +25,7 @@ function App() {
         if (data.error) {
           throw new Error(data.error)
         }
-        console.log("authUser is here",data)
+        // console.log("authUser is here",data)
         return data;
       } catch (error) {
         console.log(error);

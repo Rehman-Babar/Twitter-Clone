@@ -5,7 +5,7 @@ import {v2 as cloudinary} from 'cloudinary'
 import cors from 'cors'
 
 import authRoutes from './routes/auth.route.js';
-import userRoutes from './routes/userroute.js';
+import userRoutes from './routes/user.route.js';
 import postRoutes from './routes/post.routes.js';
 import notificationRoutes from './routes/notification.route.js';
 

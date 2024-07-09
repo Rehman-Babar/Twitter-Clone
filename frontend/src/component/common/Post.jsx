@@ -6,20 +6,20 @@ import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import toast from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
 
+
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
+
 	const {data:authUser} = useQuery({queryKey:["authUser"]})
 	const queryQlient = useQueryClient()
-	const postOwner = post.user;
-	const isLiked = false;
 
 	const isMyPost = post.user._id === authUser._id;
-	const formattedDate = "1h";
+	const postOwner = post.user;
 
-	const isCommenting = false;
 	const {mutate:DeletePost, isPending} = useMutation({
 		mutationFn: async() => {
 			try {
@@ -44,12 +44,49 @@ const Post = ({ post }) => {
 		DeletePost()
 	};
 
+	const {mutate:LikeUnlikePost,data, isPending:isLiking} = useMutation({
+		mutationFn: async (postId) => {
+			try {
+				const res = await fetch(`/api/posts/like/${postId}`, {
+					method:"Post"
+				})
+				const data = await res.json();
+				if (data.error) {
+					return toast.error(data.error)
+				}
+				
+				return data;
+			} catch (error) {
+				throw new Error(error)
+			}
+		},
+		onSuccess: (updatedLikes) => {
+			toast.success("Post liked successfully")
+			// queryQlient.invalidateQueries({queryKey:["posts"]})
+			queryQlient.setQueryData(["posts"],(oldData) => {
+				return oldData.map((p) => {
+					if(p._id === post._id){
+						return {...p, likes:updatedLikes}
+					}
+					return p;
+				})
+			})
+		}
+	})
+
+	const formattedDate = "1h";
+	const isLiked = post.likes.includes(authUser._id)
+	const isCommenting = false;
+
 	const handlePostComment = (e) => {
 		e.preventDefault();
 	};
 
-	const handleLikePost = () => {};
-
+	const handleLikePost = () => {
+		if(isLiking) return;
+		LikeUnlikePost(post._id)
+	};
+	
 	return (
 		<>
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
@@ -110,7 +147,7 @@ const Post = ({ post }) => {
 												<div className='avatar'>
 													<div className='w-8 rounded-full'>
 														<img
-															src={comment.user.profileImg || "/avatar-placeholder.png"}
+															src={comment.user.profileImg || "/avatar-placeholder.png"} alt="img"
 														/>
 													</div>
 												</div>
@@ -138,7 +175,7 @@ const Post = ({ post }) => {
 										/>
 										<button className='btn btn-primary rounded-full btn-sm text-white px-4'>
 											{isCommenting ? (
-												<span className='loading loading-spinner loading-md'></span>
+												<LoadingSpinner size="md"/>
 											) : (
 												"Post"
 											)}
@@ -153,15 +190,18 @@ const Post = ({ post }) => {
 								<BiRepost className='w-6 h-6  text-slate-500 group-hover:text-green-500' />
 								<span className='text-sm text-slate-500 group-hover:text-green-500'>0</span>
 							</div>
+							
 							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleLikePost}>
-								{!isLiked && (
+							
+								{!isLiked && !isLiking && (
 									<FaRegHeart className='w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500' />
 								)}
-								{isLiked && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
+								{isLiking && <LoadingSpinner size="sm"/>}
+								{isLiked && !isLiking && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
 
 								<span
 									className={`text-sm text-slate-500 group-hover:text-pink-500 ${
-										isLiked ? "text-pink-500" : ""
+										isLiked ? "text-pink-500" : "text-slate-500"
 									}`}
 								>
 									{post.likes.length}

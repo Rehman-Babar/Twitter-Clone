@@ -8,7 +8,7 @@ const useFollow = () => {
 
     const queryQlient =useQueryClient()
 
-    const {mutate:follow, data, isPending} = useMutation({
+    const {mutate:follow, isPending} = useMutation({
         mutationFn:async (userId) => {
             try {
                 const res =await fetch(`/api/users/follow/${userId}`, {

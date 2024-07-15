@@ -5,41 +5,55 @@ import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
 
 import LoadingSpinner from "../../component/common/LoadingSpinner";
+import {  useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const NotificationPage = () => {
-	const isLoading = false;
-	const notifications = [
-		{
-			_id: "1",
-			from: {
-				_id: "1",
-				username: "johndoe",
-				profileImg: "/avatars/boy2.png",
-			},
-			type: "follow",
+
+	const queryQlient = useQueryClient()
+
+	const {data:notifications, isLoading} = useQuery({
+		queryKey:["notifications"],
+		queryFn: async () => {
+			try {
+				const res = await fetch('/api/notification')
+				const data = await res.json();
+				if (data.error) {
+					toast.error(data.error)
+				}
+				console.log(data)
+				return data
+			} catch (error) {
+				console.log(error)
+				throw new Error(error)
+			}
+		}
+	})
+
+	const {mutate:deleteMutation} = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch('/api/notification',{
+					method:"Delete"
+				})
+				const data = await res.json();
+				if (data.error) {
+					toast.error(data.error)
+				}
+				
+				return data
+			} catch (error) {
+				throw new Error(error)
+			}
 		},
-		{
-			_id: "1",
-			from: {
-				_id: "1",
-				username: "johndoe",
-				profileImg: "/avatars/boy2.png",
-			},
-			type: "like",
-		},
-		{
-			_id: "2",
-			from: {
-				_id: "2",
-				username: "janedoe",
-				profileImg: "/avatars/girl1.png",
-			},
-			type: "like",
-		},
-	];
+		onSuccess: () => {
+			toast.success("Notification deleted successfully")
+			queryQlient.invalidateQueries({queryKey:["notifications"]})
+		}
+	})
 
 	const deleteNotifications = () => {
-		alert("All notifications deleted");
+		deleteMutation();
 	};
 
 	return (
@@ -72,14 +86,14 @@ const NotificationPage = () => {
 						<div className='flex gap-2 p-4'>
 							{notification.type === "follow" && <FaUser className='w-7 h-7 text-primary' />}
 							{notification.type === "like" && <FaHeart className='w-7 h-7 text-red-500' />}
-							<Link to={`/profile/${notification.from.username}`}>
+							<Link to={`/profile/${notification.from.userName}`}>
 								<div className='avatar'>
 									<div className='w-8 rounded-full'>
 										<img src={notification.from.profileImg || "/avatar-placeholder.png"} />
 									</div>
 								</div>
 								<div className='flex gap-1'>
-									<span className='font-bold'>@{notification.from.username}</span>{" "}
+									<span className='font-bold'>@{notification.from.userName}</span>{" "}
 									{notification.type === "follow" ? "followed you" : "liked your post"}
 								</div>
 							</Link>

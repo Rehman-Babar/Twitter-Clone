@@ -6,12 +6,16 @@ import toast from "react-hot-toast";
 import { useEffect } from "react";
 
 
-const Posts = ({feedType}) => {
+const Posts = ({feedType, id, userName}) => {
 
 	const getPostsEndPoints = () => {
 		switch(feedType) {
 			case "foryou" :
 				return "/api/posts/all";
+			case "posts" :
+				return `/api/posts/getPosts/${userName}`;
+			case "likes" :
+				return `/api/posts/getLikes/${id}`;
 			case "following":
 				return "/api/posts/following";
 			default :
@@ -37,7 +41,7 @@ const Posts = ({feedType}) => {
 	})
 	useEffect(() => {
 		refetch();
-	}, [feedType])
+	}, [feedType,refetch, userName])
 	return (
 		<>
 			{(isLoading || isFetching ) && (

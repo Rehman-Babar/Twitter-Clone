@@ -38,6 +38,7 @@ const Sidebar = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({queryKey:["authUser"]})
 			
+			
 		}
 	})
 	

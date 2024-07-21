@@ -1,3 +1,4 @@
+import path from 'path'
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -22,6 +23,8 @@ const port = process.env.PORT || 5000
 
 const app = express();
 
+const __dirname = path.resolve();
+
 app.use(express.json({limit:"3mb"}))
 app.use(cookieParser())
 app.use(express.urlencoded({extended:true}))
@@ -34,6 +37,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/notification", notificationRoutes);
+
+    app.use(express.static(path.join(__dirname, "/frontend", "build")))
+    app.get("*", (req, res) => {
+        res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"))
+    })
 
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);

@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import useFollow from "../../hooks/useFollow.jsx";
 import LoadingSpinner from "../../component/common/LoadingSpinner.jsx";
 import { formatMemberSinceDate } from "../../utils/date/function.js";
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile.jsx";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
@@ -67,36 +68,10 @@ const ProfilePage = () => {
     }
   };
 
-  const { mutate: updateProfile, isPending: updatingProfile, data } = useMutation({
-    mutationFn: async () => {
-      try {
-        const res = await fetch("/api/users/update", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ coverImg, profileImg }),
-        });
-        const data = await res.json();
-        if (data.error) {
-          toast.error(data.error);
-        }
-        setCoverImg("");
-        setProfileImg("");
-        return data;
-      } catch (error) {
-        throw new Error(error);
-      }
-    },
-    onSuccess: () => {
-      toast.success("Profile updated successfully")
-      Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-			queryClient.invalidateQueries({queryKey:["authUser"]})
-      ])
 
-    },
-  });
+	const {UpdateMutation, isPending:UpdateIsPanding} = useUpdateUserProfile()
+    
+  
 
   return (
     <>
@@ -174,9 +149,15 @@ const ProfilePage = () => {
                 {(coverImg || profileImg) && (
                   <button
                     className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-                    onClick={() => updateProfile()}
+                    onClick={ async () => {
+                      await UpdateMutation({coverImg, profileImg})
+                      setCoverImg(null)
+                      setProfileImg(null)
+                    }}
                   >
-                    {updatingProfile ? <LoadingSpinner size="sm" /> : "Update"}
+                    {UpdateIsPanding ? <LoadingSpinner size="sm" /> : "Update"}
+                    
+                    
                   </button>
                 )}
               </div>

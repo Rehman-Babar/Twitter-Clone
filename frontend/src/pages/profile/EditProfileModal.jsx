@@ -1,7 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import LoadingSpinner from "../../component/common/LoadingSpinner";
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 
 const EditProfileModal = ({authUser}) => {
 	const [formData, setFormData] = useState({
@@ -18,36 +17,7 @@ const EditProfileModal = ({authUser}) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const queryQlient = useQueryClient()
-
-	const {data:updatedUser, mutate:UpdateMutation,isPending} = useMutation({
-		mutationFn: async ({fullName, userName, link, bio, email, newPassword, currentPassword}) => {
-			try {
-				const res = await fetch('/api/users/update', {
-					method:"Post",
-					headers:{
-						"Content-Type":"application/json"
-					},
-					body:JSON.stringify({fullName, userName, link, bio, email, newPassword, currentPassword})
-				})
-				const data = await res.json();
-				if (data.error) {
-					toast.error(data.error)
-				}
-				return data
-			} catch (error) {
-				throw new Error(error)
-			}
-		},
-		onSuccess: () =>{
-			Promise.all([
-				queryQlient.invalidateQueries({queryKey:["userProfile"]}),
-				queryQlient.invalidateQueries({queryKey:["posts"]}),
-				queryQlient.invalidateQueries({queryKey:["authUser"]})
-			])
-			toast.success("Profile Updated successfully")
-		}
-	})
+	const {UpdateMutation, isPending} = useUpdateUserProfile()
 
 	useEffect(() => {
 		if (authUser) {
